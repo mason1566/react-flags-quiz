@@ -1,5 +1,6 @@
 import Game from './Game.jsx';
 import { fetchFlagData } from './api.js';
+import { FlagObject } from './flag.js';
 
 const flagData = await fetchFlagData();
 
