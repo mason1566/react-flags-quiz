@@ -5,10 +5,33 @@ import { shuffleArray } from "./utils";
 export default function Game({model}) {
     console.log(model);
     const [flagsLeft, setFlagsLeft] = useState(model.length);
+    const [currentFlagIndex, setCurrentFlagIndex] = useState(0);
+
+    function goPrevFlag() {
+        const index = currentFlagIndex - 1;
+        if (index >= 0) {
+            setCurrentFlagIndex(index);
+        } else {
+            setCurrentFlagIndex(model.length - 1);
+        }
+    }
+
+    function goNextFlag() {
+        const index = currentFlagIndex + 1;
+        if (index < model.length) {
+            setCurrentFlagIndex(index);
+        } else {
+            setCurrentFlagIndex(0);
+        }
+    }
 
     return (
         <>
-            <h1>HEllo!</h1>
+            <Flag src={model[currentFlagIndex].src} />
+            <div>
+                <button type="button" onClick={goPrevFlag}>Prev</button>
+                <button type="button" onClick={goNextFlag}>Next</button>
+            </div>
         </>
     );
 }
