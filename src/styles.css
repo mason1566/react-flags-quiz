@@ -1,0 +1,26 @@
+/* class Styling */
+.d-block {
+  display: block;
+}
+
+.mt-5px {
+  margin-top: 5px;
+}
+
+.ml-5px {
+  margin-left: 5px;
+}
+
+.flex-row {
+  display: flex
+}
+
+
+.align-center {
+  align-items: center;
+}
+
+/* Element Styling */
+table {
+  
+}
