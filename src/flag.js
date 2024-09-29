@@ -8,8 +8,8 @@ export class FlagObject {
     }
 
     hasName(name) {
-        for (const n of names) {
-            if (n === name) {
+        for (const n of this.names) {
+            if (n.toLowerCase().trim() === name.toLowerCase().trim()) {
                 return true;
             }
         }
