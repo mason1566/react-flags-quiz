@@ -59,8 +59,15 @@ export default function Game({model}) {
     function handleGuess(guess) {
         setInputValue(guess);
         if (model[state.currentFlagIndex].hasName(guess)) {
-            console.log("Correct!")
+            handleCorrectGuess();
         }
+    }
+
+    function handleCorrectGuess() {
+        removeFlag(state.currentFlagIndex);
+        setInputValue('')
+        setScore(score+1);
+        dispatch({type: 'remove_flag'});
     }
 
     function removeFlag(index) {
