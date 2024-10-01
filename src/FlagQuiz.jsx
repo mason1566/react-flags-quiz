@@ -1,103 +1,117 @@
 import { useState, useReducer, useMemo } from "react";
 
-function reducer(state, action) {
-    if (action.type === 'next_flag') {
-        const index = state.currentFlagIndex + 1;
-        if (index < state.flagsCount) {
-            return { ...state, currentFlagIndex: index};
-        } else {
-            return { ...state, currentFlagIndex: 0};
-        }
-    }
-    else if (action.type === 'prev_flag') {
-        const index = state.currentFlagIndex - 1;
-        if (index >= 0) {
-            return { ...state, currentFlagIndex: index};
-        } else {
-            return { ...state, currentFlagIndex: state.flagsCount-1};
-        }
-    }
-    else if (action.type === 'remove_flag') {
-        // Throw error if there are no flags to remove
-        if (state.flagsLeft === 0) {
-            throw new Error("Error in reducer - action 'remove_flag': No flags left to remove");
-        }
-
-        // Remove a flag from the count
-        let flagsCount = state.flagsCount - 1;
-        return { ...state, flagsCount: flagsCount };
-    }
-
-}
-
 // model is an array containing flag objects in the form: {code: 'xx', src: 'flag_url', names: ["name"], revealed: bool}
 export default function Game({model}) {
-    const [modelOriginal, setModelOriginal] = useState(model);
+    const [modelOriginal, setModelOriginal] = useState([...model]); // A backup of our countries array
     const [score, setScore] = useState(0);
-    const [flagsLeft, setFlagsLeft] = useState(model.length);
+    const [flagsLeft, setFlagsLeft] = useState(model.length); // This variable keeps track of how many flags are left to be guessed.
     const [inputValue, setInputValue] = useState('');
-    const [state, dispatch] = useReducer(reducer, { currentFlagIndex: 0, flagsCount: model.length });
+    const [currentFlagIndex, setCurrentFlagIndex] = useState(0);
+    const [viewableFlagsCount, setViewableFlagsCount] = useState(model.length);
     const [hintRevealed, setHintRevealed] = useState(false);
     const [gameOver, setGameOver] = useState(false);
 
     function goPrevFlag() {
-        dispatch({type: 'prev_flag'});
+        const index = currentFlagIndex - 1;
+
+        // Handle wrapping
+        if (index >= 0) {
+            goFlag(index);
+        } else {
+            goFlag(viewableFlagsCount-1)
+        }
         setHintRevealed(false);
     }
 
     function goNextFlag() {
-        dispatch({type: 'next_flag'});
-        setHintRevealed(false);
+        const index = currentFlagIndex + 1;
+
+        // Handle index wrapping
+        if (index < viewableFlagsCount) {
+            goFlag(index)
+        } else {
+            goFlag(0);
+        }
     }
 
-    function revealFlag() {
-        if (model[state.currentFlagIndex].revealed) return; // do nothing if the flag is already revealed
+    function goFlag(index) {
+        if (index >= viewableFlagsCount || index < 0) {
+            throw new Error("Error in goFlag() - Index out of bounds");
+        }
+        setCurrentFlagIndex(index);
+        setHintRevealed(false);
+        setInputValue('');
+    }
+
+    function revealCurrentFlag() {
+        if (model[currentFlagIndex].revealed) return; // do nothing if the flag is already revealed
+        
         setFlagsLeft(flagsLeft - 1);
-        model[state.currentFlagIndex].revealed = true;
+        model[currentFlagIndex].revealed = true;
+        checkEndGame();
     }
     
     function handleGuess(guess) {
         setInputValue(guess);
-        if (model[state.currentFlagIndex].hasName(guess)) {
+        if (model[currentFlagIndex].hasName(guess)) {
             handleCorrectGuess();
         }
     }
 
     function handleCorrectGuess() {
-        removeFlag(state.currentFlagIndex);
-        setInputValue('')
+        removeFlag(currentFlagIndex); // Remove the current flag
+        setInputValue('') // Reset our input value
         setScore(score+1);
-        dispatch({type: 'remove_flag'});
+        setHintRevealed(false);
+        checkEndGame()
+    }
+
+    function removeCurrentFlag() {
+        // Throw error if there are no flags to remove
+        if (flagsLeft === 0) {
+            throw new Error("Error in reducer - action 'remove_flag': No flags left to remove");
+        }
+        else {
+            removeFlag(currentFlagIndex);
+        }
     }
 
     function removeFlag(index) {
         if (index >= model.length) {
             throw new Error("Error in removeFlag: index out of bounds");
         }
-        // Remove the flag at the specified index
-        model.splice(index, 1);
+        model.splice(index, 1); // Remove the flag at the specified index
+        // setFlagsLeft(flagsLeft-1)
+
+        if (model.length === 1) setCurrentFlagIndex(0);
+        setViewableFlagsCount(viewableFlagsCount-1)
+    }
+
+    function checkEndGame() {
+        if (score === flagsLeft-1) endGame();
     }
 
     function endGame() {
         setGameOver(true);
     }
 
+    // If the game is not over we show the main game screen. Else we show the endscreen.
     return (
         <>
             {(!gameOver && <>
-                <Flag src={model[state.currentFlagIndex].src} />
+                <Flag src={model[currentFlagIndex].src} key={model[currentFlagIndex].src}/>
                 <div>
                     <button type="button" onClick={goPrevFlag}>Prev</button>
                     <button type="button" onClick={goNextFlag}>Next</button>
                 </div>
-                <AnswerBox onChange={(event) => handleGuess(event.target.value)} inputValue={inputValue} disabled={model[state.currentFlagIndex].revealed} />
+                <AnswerBox onChange={(event) => handleGuess(event.target.value)} inputValue={inputValue} disabled={model[currentFlagIndex].revealed} />
                 <p>Score: {score}/{flagsLeft}</p>
                 {/* Hint */}
                 <button className='d-block' type="button" onClick={() => setHintRevealed(!hintRevealed)}>Hint</button>
-                {hintRevealed && <p className='d-block'><strong>Country Code:</strong> {model[state.currentFlagIndex].code}</p>}
+                {hintRevealed && <p className='d-block'><strong> Continent:</strong> {model[currentFlagIndex].continent}</p>}
                 {/* Answer */}
-                <button className='d-block' type="button" onClick={revealFlag}>Answer</button>
-                {model[state.currentFlagIndex].revealed && <p><strong>{model[state.currentFlagIndex].names[0]}</strong></p>}
+                <button className='d-block' type="button" onClick={revealCurrentFlag}>Answer</button>
+                {model[currentFlagIndex].revealed && <p><strong>{model[currentFlagIndex].names[0]}</strong></p>}
                 {/* Give up button */}
                 <button className='d-block' type="button" onClick={endGame}>Give Up</button>
             </>) ||

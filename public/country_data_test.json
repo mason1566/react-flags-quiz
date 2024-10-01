@@ -1,13 +1,16 @@
 {
-    "ba": {
+    "zm": {
         "names": [
-            "Bosnia and Herzegovina",
-            "Bosnia & Herzegovina"
-        ]
+            "Zambia"
+        ],
+        "flag": "/flags/zm.svg",
+        "continent": "Africa 2"
     },
-    "bb": {
+    "zw": {
         "names": [
-            "Barbados"
-        ]
+            "Zimbabwe"
+        ],
+        "flag": "/flags/zw.svg",
+        "continent": "Africa"
     }
 }

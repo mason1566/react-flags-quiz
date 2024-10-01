@@ -11,7 +11,8 @@ export const fetchFlagData = async () => {
         for (const code in data) {
             let names = data[code]["names"];
             let src = data[code]["flag"];
-            flagObjects.push(new FlagObject(code, names, src));
+            let continent = data[code]["continent"];
+            flagObjects.push(new FlagObject(code, names, src, continent));
         }
 
         return flagObjects;
