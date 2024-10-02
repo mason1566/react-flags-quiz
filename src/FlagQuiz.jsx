@@ -1,6 +1,6 @@
 import { useState, useReducer, useMemo } from "react";
 
-// model is an array containing flag objects in the form: {code: 'xx', src: 'flag_url', names: ["name"], revealed: bool}
+// model is an array containing FlagObjects in the form: {code: 'xx', src: 'flag_url', names: ["name"], continent: "continent", revealed: bool}
 export default function Game({model}) {
     const [modelOriginal, setModelOriginal] = useState([...model]); // A backup of our countries array
     const [score, setScore] = useState(0);
@@ -12,26 +12,13 @@ export default function Game({model}) {
     const [gameOver, setGameOver] = useState(false);
 
     function goPrevFlag() {
-        const index = currentFlagIndex - 1;
-
-        // Handle wrapping
-        if (index >= 0) {
-            goFlag(index);
-        } else {
-            goFlag(viewableFlagsCount-1)
-        }
-        setHintRevealed(false);
+        const index = handleOverflow(currentFlagIndex - 1);
+        goFlag(index);
     }
 
     function goNextFlag() {
-        const index = currentFlagIndex + 1;
-
-        // Handle index wrapping
-        if (index < viewableFlagsCount) {
-            goFlag(index)
-        } else {
-            goFlag(0);
-        }
+        const index = handleOverflow(currentFlagIndex + 1);
+        goFlag(index);
     }
 
     function goFlag(index) {
@@ -41,6 +28,12 @@ export default function Game({model}) {
         setCurrentFlagIndex(index);
         setHintRevealed(false);
         setInputValue('');
+    }
+
+    function handleOverflow(flagIndex) {
+        if (flagIndex < 0) return viewableFlagsCount - 1;
+        else if (flagIndex >= viewableFlagsCount) return 0;
+        return flagIndex;
     }
 
     function revealCurrentFlag() {
@@ -95,7 +88,7 @@ export default function Game({model}) {
         setGameOver(true);
     }
 
-    // If the game is not over we show the main game screen. Else we show the endscreen.
+    // If the game is not over -> we show the main game screen. Else we show the endscreen.
     return (
         <>
             {(!gameOver && <>
