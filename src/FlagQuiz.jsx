@@ -1,4 +1,4 @@
-import { useState, useReducer, useMemo } from "react";
+import { useState } from "react";
 
 // model is an array containing FlagObjects in the form: {code: 'xx', src: 'flag_url', names: ["name"], continent: "continent", revealed: bool}
 export default function Game({model}) {
